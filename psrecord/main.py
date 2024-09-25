@@ -85,6 +85,12 @@ def main():
                              'in a slower maximum sampling rate).',
                         action='store_true')
 
+    parser.add_argument('--max-cpu', type=int,
+                        help='')
+
+    parser.add_argument('--max-memory', type=int,
+                        help='')
+
     args = parser.parse_args()
 
     # Attach to process
@@ -101,14 +107,15 @@ def main():
         pid = sprocess.pid
 
     monitor(pid, logfile=args.log, plot=args.plot, duration=args.duration,
-            interval=args.interval, include_children=args.include_children)
+            interval=args.interval, include_children=args.include_children,
+            max_cpu=args.max_cpu, max_memory=args.max_memory)
 
     if sprocess is not None:
         sprocess.kill()
 
 
 def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
-            include_children=False):
+            include_children=False, max_cpu=None, max_memory=None):
 
     # We import psutil here so that the module can be imported even if psutil
     # is not present (for example if accessing the version)
@@ -216,12 +223,12 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             ax.set_ylabel('CPU (%)', color='r')
             ax.set_xlabel('time (s)')
-            ax.set_ylim(0., max(log['cpu']) * 1.2)
+            ax.set_ylim(0., max(log['cpu']) * 1.2 if max_cpu is None else max_cpu)
 
             ax2 = ax.twinx()
 
             ax2.plot(log['times'], log['mem_real'], '-', lw=1, color='b')
-            ax2.set_ylim(0., max(log['mem_real']) * 1.2)
+            ax2.set_ylim(0., max(log['mem_real']) * 1.2 if max_memory is None else max_memory)
 
             ax2.set_ylabel('Real Memory (MB)', color='b')
 
